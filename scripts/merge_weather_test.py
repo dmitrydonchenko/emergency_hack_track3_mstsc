@@ -10,10 +10,7 @@ if __name__ == '__main__':
     # для примера загрузим метеорологические данные Росгидромета, в которых содержится полный список метеостанций, и сэмпл обучающей выборки
     meteo = pd.read_pickle('meteo.pickle')
     # тренировочные данные
-    train = pd.read_pickle('train.pickle')
-
-    # удаляем наблюдения по трассе М-4
-    train = train[(train['road_id'] != 5)]
+    test = pd.read_pickle('test.pickle')
 
     # используем данные первого геокодера
     geo = geo.dropna(subset=['lat_geoc'])
@@ -22,7 +19,7 @@ if __name__ == '__main__':
     geo = geo[['road_id', 'road_km', 'lat_long']]
 
     # добавляем координаты в тренировочную выборку
-    train_cord = pd.merge(train, geo, on=['road_id', 'road_km'], how='left')
+    test_cord = pd.merge(test, geo, on=['road_id', 'road_km'], how='left')
 
     print('stage 1')
     coord_merge(meteo)
@@ -30,9 +27,9 @@ if __name__ == '__main__':
     full_stations_list = stations_list(meteo)
     # мёржим
     print('stage 3')
-    train_cord['station'] = train_cord['lat_long'].map(functools.partial(stat_km, stat_list=full_stations_list))
+    test_cord['station'] = test_cord['lat_long'].map(functools.partial(stat_km, stat_list=full_stations_list))
     print('stage 4')
-    train_cord['station'] = train_cord['station'].where(pd.notnull(train_cord['station']), np.nan)
+    test_cord['station'] = test_cord['station'].where(pd.notnull(test_cord['station']), np.nan)
     print('stage 5')
 
-    train_cord.to_pickle('train-with-station.pickle')
+    test_cord.to_pickle('test-with-station.pickle')
