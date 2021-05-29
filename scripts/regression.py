@@ -3,6 +3,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score
 from sklearn.svm import SVC
 from catboost import CatBoostClassifier
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -19,6 +20,8 @@ c_features = [
     'vsp_1_q', 'vsp_2_q', 'vsp_3_q', 'visib_q', 'clouds_q', 'weather_range_q', 'weather_on_measure_q', 'wind_dir_q',
     'avg_wind_q', 'max_wind_q', 'precip_q', 'temp_on_measure_q', 'temp_min_q', 'temp_max_q', 'humidity_q', 'pressure_q'
 ]
+# колонки из atmos.pickle
+atmos_cols = ['phenomenon', 'phenomenon_q', 'intensity', 'intensity_q']
 # все фичи
 a_features = d_features + c_features
 
@@ -48,7 +51,18 @@ def plot_feature_importance(X, model, feature_names, features_num):
     plt.show()
 
 
-if __name__ == '__main__':
+def atmos_condition(x, atmos, cols):
+    condition = (x.datetime >= atmos.dt_start) &\
+                (x.datetime <= atmos.dt_end) &\
+                (x.station == atmos.station)
+    result = atmos[condition]
+    if result.shape[0] > 0:
+        return result.iloc[0][cols]
+    else:
+        return {x: np.nan for x in cols}
+
+
+def first_time():
     # load
     train = pd.read_pickle('train.pickle')
     meteo = pd.read_pickle('meteo.pickle')
@@ -62,9 +76,25 @@ if __name__ == '__main__':
     train = train.sort_values('datetime')
 
     meteo = meteo.drop(columns=['road_id', 'lat', 'lon'])
+    atmos = atmos.drop(columns=['road_id', 'lat', 'lon'])
 
     train = pd.merge_asof(train, meteo, on='datetime', by='station')
+    train[atmos_cols] = train.apply(lambda x: atmos_condition(x, atmos, atmos_cols), axis=1)
     train = train.dropna()
+
+    train.to_pickle('train-merged.pickle')
+
+    return train
+
+
+if __name__ == '__main__':
+    prepared_train = 'train-merged.pickle'
+    if not Path(prepared_train).exists():
+        print('--- Wait for process files ---')
+        train = first_time()
+        print('--- DONE ---')
+    else:
+        train = pd.read_pickle(prepared_train)
 
     x = train[d_features].values
     y = train.target.values
@@ -104,5 +134,5 @@ if __name__ == '__main__':
     print(f'f1_score_train = {result_train}')
     print(f' f1_score_test = {result_test}')
 
-    # importance
+    features importance
     plot_feature_importance(X_train, model, a_features, len(a_features))
