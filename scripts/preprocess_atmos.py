@@ -40,14 +40,17 @@ def preprocess(input, output):
     # и мёржим end_date и end_ts
     df['dt_end'] = df[['end_date', 'end_ts']].apply(lambda x: pd.to_datetime(' '.join(x)), axis=1)
 
-    print('step 08: drop')
+    print('step 08: add missing lat,lon')
+    df.loc[df.station == 'MOSKBAL', 'lat'] = 55.8
+    df.loc[df.station == 'MOSKBAL', 'lon'] = 37.5
+    df.loc[df.station == 'MONCHEG', 'lat'] = 67.9
+    df.loc[df.station == 'MONCHEG', 'lon'] = 32.9
+
+    print('step 09: drop')
     # и дропаем ненужные колонки
     df = df.drop(columns=['Unnamed: 0', 'start_date', 'start_ts', 'end_date', 'end_ts'])
     # а также убираем данные раньше 2016 года
     df = df[df.dt_start >= pd.to_datetime('2016-01-01 00:00:00')]
-
-    print('step 09: add lat,lon for MOSKBAL')
-    # TODO
 
     print(f'step 10: save to {output}')
     df.to_pickle(output)
