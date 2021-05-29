@@ -4,11 +4,14 @@ import argparse
 import pandas as pd
 
 
-def preprocess(input, output, protocol):
+def convert_file(input, output, protocol):
+    result = output / input.name
+    df = pd.read_pickle(input)
+    df.to_pickle(result, protocol=protocol)
+
+def convert(input, output, protocol):
     for file in input.glob('*.pickle'):
-        result = output / file.name
-        df = pd.read_pickle(file)
-        df.to_pickle(result, protocol=protocol)
+        process_file(file, output, protocol)
 
 
 if __name__ == '__main__':
@@ -21,7 +24,14 @@ if __name__ == '__main__':
     if args.input == args.output:
         print('Input and output folders do not have to be the same')
         exit()
-    if args.input.exists():
-        preprocess(args.input, args.output, args.protocol)
+
+    if not args.input.exists():
+        print(f'{args.input} not found!')
+        exit()
+
+    if args.input.is_dir():
+        convert(args.input, args.output, args.protocol)
+    elif args.input.is_file():
+        convert_file(args.input, args.output, args.protocol)
     else:
-        print(f'Folder {args.input} not found!')
+        print(f"{args.input} doesn't seem like file or folder!")
