@@ -4,6 +4,8 @@
 3. Запускаем [preprocess_meteo.py](preprocess_meteo.py) для обработки `meteo.pickle`
 4. Привязываем данные о метеостанциях с помощью [merge_weather_test.py](merge_weather_test.py),
 [merge_weather_traffic.py](merge_weather_traffic.py) и [merge_weather_train.py](merge_weather_test.py)
-5. Используем [regression.py](regression.py) для получения смёрженного `train.pickle` и тестирования нескольких моделей
-6. Обучаем модели с помощью скрипта [prepare_models.py](prepare_models.py)
-7. Остаётся только добавить в `test.pickle` необходимые поля по погоде и можно предсказывать
+5. Используем [prepare_train.py](prepare_train.py) для получения смёрженного `train-merged.pickle` и тестирования нескольких моделей
+6. Используем [prepare_test.py](prepare_test.py) для получения смёрженного `test-merged.pickle` над которым можно делать предсказания
+7. Обучаем модели с помощью скрипта [prepare_models.py](prepare_models.py)
+8. Скармливаем полученным моделям файл `test-merged.pickle`
+9. PROFIT

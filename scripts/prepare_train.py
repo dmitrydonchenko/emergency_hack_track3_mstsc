@@ -64,14 +64,15 @@ def atmos_condition(x, atmos, cols):
         return pd.DataFrame({x: [np.nan] for x in cols}).iloc[0]
 
 
-def first_time():
+def process(input, output, *, need_drop=True):
     # load
-    train = pd.read_pickle('train.pickle')
+    train = pd.read_pickle(input)
     meteo = pd.read_pickle('meteo.pickle')
     atmos = pd.read_pickle('atmos.pickle')
 
     # prepare data
-    train = train.dropna()
+    if need_drop:
+        train = train.dropna()
     meteo = meteo.dropna()
     meteo = meteo.rename(columns={'measure_dt': 'datetime'})
     meteo = meteo.sort_values('datetime')
@@ -82,9 +83,10 @@ def first_time():
 
     train = pd.merge_asof(train, meteo, on='datetime', by='station')
     train[atmos_cols] = train.apply(lambda x: atmos_condition(x, atmos, atmos_cols), axis=1)
-    train = train.dropna()
+    if need_drop:
+        train = train.dropna()
 
-    train.to_pickle('train-merged.pickle')
+    train.to_pickle(output)
 
     return train
 
@@ -92,7 +94,7 @@ def first_time():
 if __name__ == '__main__':
     if not Path(prepared_train).exists():
         print('--- Wait for process files ---')
-        train = first_time()
+        train = process('train.pickle', prepared_train)
         print('--- DONE ---')
     else:
         train = pd.read_pickle(prepared_train)
