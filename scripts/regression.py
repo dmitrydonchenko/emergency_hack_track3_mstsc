@@ -24,6 +24,8 @@ c_features = [
 atmos_cols = ['phenomenon', 'phenomenon_q', 'intensity', 'intensity_q']
 # все фичи
 a_features = d_features + c_features
+# ...
+prepared_train = 'train-merged.pickle'
 
 
 def plot_feature_importance(X, model, feature_names, features_num):
@@ -59,7 +61,7 @@ def atmos_condition(x, atmos, cols):
     if result.shape[0] > 0:
         return result.iloc[0][cols]
     else:
-        return {x: np.nan for x in cols}
+        return pd.DataFrame({x: [np.nan] for x in cols}).iloc[0]
 
 
 def first_time():
@@ -88,7 +90,6 @@ def first_time():
 
 
 if __name__ == '__main__':
-    prepared_train = 'train-merged.pickle'
     if not Path(prepared_train).exists():
         print('--- Wait for process files ---')
         train = first_time()
@@ -134,5 +135,5 @@ if __name__ == '__main__':
     print(f'f1_score_train = {result_train}')
     print(f' f1_score_test = {result_test}')
 
-    features importance
+    # features importance
     plot_feature_importance(X_train, model, a_features, len(a_features))
